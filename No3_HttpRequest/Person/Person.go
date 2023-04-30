@@ -3,6 +3,7 @@ package Person
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 type Person struct {
@@ -11,34 +12,56 @@ type Person struct {
 	Alamat string `json:"Alamat"`
 }
 
-var person []Person
+var persons = []Person{
+	{Nama: "Risky", NIM: "123456", Alamat: "Jl. Mangga"},
+	{Nama: "Akbar", NIM: "654321", Alamat: "Jl. Manggis"},
+}
 
 func PersonHandler(w http.ResponseWriter, r *http.Request) {
+
+	count := 0
+
 	if r.Method == "POST" {
-		Person := Person{
-			Nama:   r.FormValue("Nama"),
-			NIM:    r.FormValue("NIM"),
-			Alamat: r.FormValue("Alamat"),
+		GetNamePerson := Person{
+			Nama: r.FormValue("Nama"),
 		}
 
-		person = append(person, Person)
+		for _, value := range persons {
+			if strings.EqualFold(GetNamePerson.Nama, value.Nama) {
+				response, err := json.Marshal(Person{
+					Nama:   value.Nama,
+					NIM:    value.NIM,
+					Alamat: value.Alamat,
+				})
 
-		personJson, _ := json.Marshal(Person)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
+
+				count++
+
+				w.Header().Set("Content-Type", "application/json")
+				w.Write(response)
+			}
+		}
+
+		if count == 0 {
+			http.Error(w, "Nama Tidak ada", http.StatusMethodNotAllowed)
+		}
+
+	} else {
+		http.Error(w, "Method Tidak tersedia", http.StatusMethodNotAllowed)
+	}
+
+}
+
+func GetAllDataHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		personJson, _ := json.Marshal(persons)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(personJson)
 	} else {
-		http.Error(w, "Invalid Request Method", http.StatusMethodNotAllowed)
-	}
-}
-
-func SemuaData(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		personJson, _ := json.Marshal(person)
-
-		w.Header().Set("Content-Type", "application/json")
-        w.Write(personJson)
-	} else {
-		http.Error(w, "Invalid Request Method", http.StatusMethodNotAllowed)
+		http.Error(w, "Method Tidak tersedia", http.StatusMethodNotAllowed)
 	}
 }

@@ -9,7 +9,7 @@ func main() {
     mux := http.NewServeMux()
 
     mux.HandleFunc("/nama", Person.PersonHandler)
-    mux.HandleFunc("/semuadata", Person.SemuaData)
+    mux.HandleFunc("/semuadata", Person.GetAllDataHandler)
 
     http.ListenAndServe(":5050", mux)
 }
